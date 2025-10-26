@@ -53,7 +53,7 @@ export class AtendimentoComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(async params => {
       this.agendamentoId = params['id'];
       this.pacienteId = params['pacienteId'];
       this.nome = params['nome'];
@@ -61,6 +61,21 @@ export class AtendimentoComponent implements OnInit {
       this.dataAtendimento = params['data'];
       this.professorResponsavelNome = params['professorNome'];
       this.professorResponsavelUid = params['professorUid'];
+
+      if (this.agendamentoId) {
+        const atendimentoExistente = await this.agendamentoService.obterAtendimentoPorId(this.agendamentoId);
+        if (atendimentoExistente) {
+          this.atendimentoForm.patchValue({
+            anamnese: atendimentoExistente.anamnese || '',
+            exameFisico: atendimentoExistente.exameFisico || '',
+            solicitacaoExames: atendimentoExistente.solicitacaoExames || '',
+            orientacao: atendimentoExistente.orientacao || '',
+            prescricao: atendimentoExistente.prescricao || '',
+            conduta: atendimentoExistente.conduta || '',
+            cid10: atendimentoExistente.cid10 || ''
+          });
+        }
+      }
     });
 
     this.authService.getUsuarioLogado().then(user => {
@@ -71,6 +86,7 @@ export class AtendimentoComponent implements OnInit {
     });
   }
 
+
   async salvarAtendimento(): Promise<void> {
     if (this.atendimentoForm.invalid) {
       this.atendimentoForm.markAllAsTouched();
@@ -79,45 +95,46 @@ export class AtendimentoComponent implements OnInit {
     }
 
     if (!this.agendamentoId) {
-      Swal.fire('Erro Crítico', 'Não foi possível identificar o agendamento original.', 'error');
+      Swal.fire('Erro Crítico', 'Não foi possível identificar o atendimento.', 'error');
       return;
     }
 
-    const atendimentoParaSalvar: Agendamento = {
-      ...this.atendimentoForm.value,
-      agendamentoId: this.agendamentoId,
-      pacienteId: this.pacienteId!,
-      nome: this.nome!,
-      idade: this.idade!,
-      data: this.dataAtendimento!,
-      hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      status: 'pendente',
-      estagiarioNome: this.estagiarioNome!,
-      estagiarioUid: this.estagiarioUid!,
-      professorResponsavelNome: this.professorResponsavelNome!,
-      professorResponsavelUid: this.professorResponsavelUid!
-    };
+    const dados = this.atendimentoForm.value;
 
     try {
-      await this.agendamentoService.criarAtendimento(atendimentoParaSalvar);
-      console.log('Passo 1/2: Registro de ATENDIMENTO criado com sucesso.');
+      const atendimentoExistente = await this.agendamentoService.obterAtendimentoPorId(this.agendamentoId);
 
-      console.log('Passo 2/2: Tentando marcar o AGENDAMENTO original como finalizado. ID:', this.agendamentoId);
-      await this.agendamentoService.marcarAgendamentoComoFinalizado(this.agendamentoId)
-        .then(() => {
-          console.log('SUCESSO: Status do AGENDAMENTO original atualizado para "finalizado".');
-        })
-        .catch(err => {
-          console.error('FALHA ao atualizar status do AGENDAMENTO original:', err);
-        });
+      if (atendimentoExistente) {
+        await this.agendamentoService.atualizarAtendimento(this.agendamentoId, dados);
+        Swal.fire('Sucesso!', 'Atendimento atualizado com sucesso.', 'success');
+      } else {
+        const atendimentoNovo: Agendamento = {
+          ...dados,
+          agendamentoId: this.agendamentoId,
+          pacienteId: this.pacienteId!,
+          nome: this.nome!,
+          idade: this.idade!,
+          data: this.dataAtendimento!,
+          hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+          status: 'pendente',
+          estagiarioNome: this.estagiarioNome!,
+          estagiarioUid: this.estagiarioUid!,
+          professorResponsavelNome: this.professorResponsavelNome!,
+          professorResponsavelUid: this.professorResponsavelUid!
+        };
 
-      Swal.fire('Sucesso!', 'Atendimento salvo e finalizado com sucesso.', 'success');
+        await this.agendamentoService.criarAtendimento(atendimentoNovo);
+        await this.agendamentoService.marcarAgendamentoComoFinalizado(this.agendamentoId);
+        Swal.fire('Sucesso!', 'Atendimento criado e finalizado com sucesso.', 'success');
+      }
+
       this.router.navigate(['/home']);
     } catch (error) {
-      console.error("ERRO CRÍTICO no salvamento:", error);
+      console.error('Erro ao salvar atendimento:', error);
       Swal.fire('Erro!', 'Ocorreu um problema ao salvar o atendimento.', 'error');
     }
   }
+
 
   cancelar(): void {
     this.router.navigate(['/home']);

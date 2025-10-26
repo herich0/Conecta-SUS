@@ -42,6 +42,7 @@ export class AgendamentoService {
     this.atendimentosCollection = this.firestore.collection<Agendamento>('atendimentos');
   }
 
+  // 🔹 Agendamentos
   obterAgendamentosPorData(data: Date): Observable<Agendamento[]> {
     const dataFormatada = data.toISOString().split('T')[0];
     return this.firestore.collection<Agendamento>('agendamentos', ref => ref.where('data', '==', dataFormatada))
@@ -57,7 +58,7 @@ export class AgendamentoService {
       .where('estagiarioUid', '==', usuarioLogado.uid)
     ).snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))));
   }
-  
+
   async obterAgendamentosPorProfessorResponsavel(professorUid: string, data: Date): Promise<Observable<Agendamento[]>> {
     const dataFormatada = data.toISOString().split('T')[0];
     return this.firestore.collection<Agendamento>('agendamentos', ref => ref
@@ -65,7 +66,8 @@ export class AgendamentoService {
       .where('professorResponsavelUid', '==', professorUid)
     ).snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))));
   }
-  
+
+  // 🔹 Atendimentos
   async obterAtendimentosPorPaciente(pacienteId: string): Promise<Agendamento[]> {
     const snapshot = await this.atendimentosCollection.ref.where('pacienteId', '==', pacienteId).get();
     if (snapshot.empty) return [];
@@ -89,12 +91,51 @@ export class AgendamentoService {
     return { id: doc.id, ...doc.data() };
   }
 
-  salvarAgendamento(agendamento: Agendamento): Promise<any> { return this.agendamentosCollection.add(agendamento); }
-  atualizarAgendamento(agendamento: Agendamento): Promise<void> { return this.agendamentosCollection.doc(agendamento.id).update(agendamento); }
-  excluirAgendamento(id: string): Promise<void> { return this.agendamentosCollection.doc(id).delete(); }
-  criarAtendimento(atendimento: Agendamento): Promise<any> { const { id, ...data } = atendimento; return this.atendimentosCollection.add(data); }
-  marcarAgendamentoComoFinalizado(id: string): Promise<void> { return this.agendamentosCollection.doc(id).update({ status: 'finalizado' }); }
+  // 🔹 CRUD de Agendamentos
+  salvarAgendamento(agendamento: Agendamento): Promise<any> {
+    return this.agendamentosCollection.add(agendamento);
+  }
 
+  atualizarAgendamento(agendamento: Agendamento): Promise<void> {
+    return this.agendamentosCollection.doc(agendamento.id).update(agendamento);
+  }
+
+  excluirAgendamento(id: string): Promise<void> {
+    return this.agendamentosCollection.doc(id).delete();
+  }
+
+  // 🔹 CRUD de Atendimentos
+  criarAtendimento(atendimento: Agendamento): Promise<any> {
+    const { id, ...data } = atendimento;
+    return this.atendimentosCollection.add(data);
+  }
+
+  async obterAtendimentoPorId(id: string): Promise<Agendamento | undefined> {
+    try {
+      const doc = await this.atendimentosCollection.doc(id).ref.get();
+      if (!doc.exists) return undefined;
+      return { id: doc.id, ...doc.data() } as Agendamento;
+    } catch (error) {
+      console.error('Erro ao obter atendimento por ID:', error);
+      return undefined;
+    }
+  }
+
+  async atualizarAtendimento(id: string, dados: Partial<Agendamento>): Promise<void> {
+    try {
+      await this.atendimentosCollection.doc(id).update(dados);
+      console.log(`Atendimento ${id} atualizado com sucesso.`);
+    } catch (error) {
+      console.error('Erro ao atualizar atendimento:', error);
+      throw error;
+    }
+  }
+
+  marcarAgendamentoComoFinalizado(id: string): Promise<void> {
+    return this.agendamentosCollection.doc(id).update({ status: 'finalizado' });
+  }
+
+  // 🔹 Avaliação
   avaliarAtendimento(id: string, status: 'aceito' | 'rejeitado', observacao: string): Promise<void> {
     return this.atendimentosCollection.doc(id).update({ status, observacaoProfessor: observacao });
   }
@@ -108,25 +149,26 @@ export class AgendamentoService {
     return batch.commit();
   }
 
-obterAtendimentosAvaliadosPorEstagiario(estagiarioUid: string): Observable<Agendamento[]> {
-  return this.atendimentosCollection.snapshotChanges().pipe(
-    map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))
-      .filter(atendimento => 
-        atendimento.estagiarioUid === estagiarioUid && 
-        (atendimento.status === 'aceito' || atendimento.status === 'rejeitado')
+  // 🔹 Histórico e filtros
+  obterAtendimentosAvaliadosPorEstagiario(estagiarioUid: string): Observable<Agendamento[]> {
+    return this.atendimentosCollection.snapshotChanges().pipe(
+      map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))
+        .filter(atendimento =>
+          atendimento.estagiarioUid === estagiarioUid &&
+          (atendimento.status === 'aceito' || atendimento.status === 'rejeitado')
+        )
       )
-    )
-  );
-}
+    );
+  }
 
-obterAtendimentosAvaliadosPorProfessor(professorUid: string): Observable<Agendamento[]> {
-  return this.atendimentosCollection.snapshotChanges().pipe(
-    map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))
-      .filter(atendimento => 
-        atendimento.professorResponsavelUid === professorUid && 
-        (atendimento.status === 'aceito' || atendimento.status === 'rejeitado')
+  obterAtendimentosAvaliadosPorProfessor(professorUid: string): Observable<Agendamento[]> {
+    return this.atendimentosCollection.snapshotChanges().pipe(
+      map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))
+        .filter(atendimento =>
+          atendimento.professorResponsavelUid === professorUid &&
+          (atendimento.status === 'aceito' || atendimento.status === 'rejeitado')
+        )
       )
-    )
-  );
-}
+    );
+  }
 }

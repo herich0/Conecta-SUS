@@ -184,4 +184,9 @@ export class CadastroComponent implements OnInit {
       }
     });
   }
+
+  ngOnDestroy(): void {
+    sessionStorage.removeItem('usuarioEdicao');
+  }
+
 }

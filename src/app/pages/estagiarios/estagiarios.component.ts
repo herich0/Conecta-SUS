@@ -38,14 +38,14 @@ export class EstagiariosComponent implements OnInit {
     });
   }
 
- async verificarPermissao() {
-  this.temPermissao = await firstValueFrom(this.authService.podeGerenciarEstagiarios());
-  
-  if (!this.temPermissao) {
-    this.router.navigate(['/home']);
-    Swal.fire('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error');
+  async verificarPermissao() {
+    this.temPermissao = await firstValueFrom(this.authService.podeGerenciarEstagiarios());
+
+    if (!this.temPermissao) {
+      this.router.navigate(['/home']);
+      Swal.fire('Acesso Negado', 'Você não tem permissão para acessar esta página.', 'error');
+    }
   }
-}
 
 
   irParaCadastro(): void {
@@ -53,8 +53,10 @@ export class EstagiariosComponent implements OnInit {
   }
 
   editarUsuario(usuario: Usuario) {
-    this.router.navigate(['/cadastro', usuario.uid]);
+    sessionStorage.setItem('usuarioEdicao', JSON.stringify(usuario));
+    this.router.navigate(['/cadastro'], { queryParams: { contexto: 'estagiario' } });
   }
+
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
