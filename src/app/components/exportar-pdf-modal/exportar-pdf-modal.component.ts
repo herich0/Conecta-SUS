@@ -3,7 +3,8 @@ import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-exportar-pdf-modal',
-  templateUrl: './exportar-pdf-modal.component.html'
+  templateUrl: './exportar-pdf-modal.component.html',
+  styleUrls: ['./exportar-pdf-modal.component.scss']
 })
 export class ExportarPdfModalComponent {
   campos = {

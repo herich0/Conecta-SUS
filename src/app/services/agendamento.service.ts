@@ -42,7 +42,6 @@ export class AgendamentoService {
     this.atendimentosCollection = this.firestore.collection<Agendamento>('atendimentos');
   }
 
-  // 🔹 Agendamentos
   obterAgendamentosPorData(data: Date): Observable<Agendamento[]> {
     const dataFormatada = data.toISOString().split('T')[0];
     return this.firestore.collection<Agendamento>('agendamentos', ref => ref.where('data', '==', dataFormatada))
@@ -67,7 +66,6 @@ export class AgendamentoService {
     ).snapshotChanges().pipe(map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))));
   }
 
-  // 🔹 Atendimentos
   async obterAtendimentosPorPaciente(pacienteId: string): Promise<Agendamento[]> {
     const snapshot = await this.atendimentosCollection.ref.where('pacienteId', '==', pacienteId).get();
     if (snapshot.empty) return [];
@@ -91,7 +89,6 @@ export class AgendamentoService {
     return { id: doc.id, ...doc.data() };
   }
 
-  // 🔹 CRUD de Agendamentos
   salvarAgendamento(agendamento: Agendamento): Promise<any> {
     return this.agendamentosCollection.add(agendamento);
   }
@@ -104,7 +101,6 @@ export class AgendamentoService {
     return this.agendamentosCollection.doc(id).delete();
   }
 
-  // 🔹 CRUD de Atendimentos
   criarAtendimento(atendimento: Agendamento): Promise<any> {
     const { id, ...data } = atendimento;
     return this.atendimentosCollection.add(data);
@@ -135,7 +131,6 @@ export class AgendamentoService {
     return this.agendamentosCollection.doc(id).update({ status: 'finalizado' });
   }
 
-  // 🔹 Avaliação
   avaliarAtendimento(id: string, status: 'aceito' | 'rejeitado', observacao: string): Promise<void> {
     return this.atendimentosCollection.doc(id).update({ status, observacaoProfessor: observacao });
   }
@@ -149,7 +144,6 @@ export class AgendamentoService {
     return batch.commit();
   }
 
-  // 🔹 Histórico e filtros
   obterAtendimentosAvaliadosPorEstagiario(estagiarioUid: string): Observable<Agendamento[]> {
     return this.atendimentosCollection.snapshotChanges().pipe(
       map(actions => actions.map(a => ({ id: a.payload.doc.id, ...a.payload.doc.data() }))

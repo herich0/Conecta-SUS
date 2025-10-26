@@ -25,14 +25,6 @@ export class AtendimentoComponent implements OnInit {
   private professorResponsavelUid: string | null = null;
   private professorResponsavelNome: string | null = null;
 
-  anamnese: string = '';
-  exameFisico: string = '';
-  solicitacaoExames: string = '';
-  orientacao: string = '';
-  prescricao: string = '';
-  conduta: string = '';
-  cid10: string = '';
-
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -65,15 +57,7 @@ export class AtendimentoComponent implements OnInit {
       if (this.agendamentoId) {
         const atendimentoExistente = await this.agendamentoService.obterAtendimentoPorId(this.agendamentoId);
         if (atendimentoExistente) {
-          this.atendimentoForm.patchValue({
-            anamnese: atendimentoExistente.anamnese || '',
-            exameFisico: atendimentoExistente.exameFisico || '',
-            solicitacaoExames: atendimentoExistente.solicitacaoExames || '',
-            orientacao: atendimentoExistente.orientacao || '',
-            prescricao: atendimentoExistente.prescricao || '',
-            conduta: atendimentoExistente.conduta || '',
-            cid10: atendimentoExistente.cid10 || ''
-          });
+          this.atendimentoForm.patchValue(atendimentoExistente);
         }
       }
     });
@@ -85,7 +69,6 @@ export class AtendimentoComponent implements OnInit {
       }
     });
   }
-
 
   async salvarAtendimento(): Promise<void> {
     if (this.atendimentoForm.invalid) {
@@ -124,7 +107,9 @@ export class AtendimentoComponent implements OnInit {
         };
 
         await this.agendamentoService.criarAtendimento(atendimentoNovo);
+
         await this.agendamentoService.marcarAgendamentoComoFinalizado(this.agendamentoId);
+
         Swal.fire('Sucesso!', 'Atendimento criado e finalizado com sucesso.', 'success');
       }
 
@@ -141,77 +126,81 @@ export class AtendimentoComponent implements OnInit {
   }
 
   abrirModalExportarPDF() {
-    const dialogRef = this.dialog.open(ExportarPdfModalComponent);
+    const dialogRef = this.dialog.open(ExportarPdfModalComponent, { width: '400px' });
 
     dialogRef.afterClosed().subscribe(camposSelecionados => {
-      if (camposSelecionados) {
-        const img = new Image();
-        img.src = 'assets/logo.png';
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d')!;
-          ctx.drawImage(img, 0, 0);
-          const imgData = canvas.toDataURL('image/png');
-
-          const doc = new jsPDF();
-          const pageHeight = doc.internal.pageSize.getHeight();
-          const pageWidth = doc.internal.pageSize.getWidth();
-          const margin = 10;
-          const maxWidth = pageWidth - 2 * margin;
-          const lineHeight = 8;
-
-          let y = 10;
-
-
-          const imgWidth = 50;
-          const imgX = (pageWidth - imgWidth) / 2;
-          doc.addImage(imgData, 'PNG', imgX, y, imgWidth, 20);
-          y += 30;
-
-
-          doc.setFontSize(12);
-          const titulo = `Atendimento - ${this.nome} (${this.idade} anos)`;
-          const tituloLines = doc.splitTextToSize(titulo, maxWidth);
-          doc.text(tituloLines, margin, y);
-          y += tituloLines.length * lineHeight;
-
-
-          const adicionarCampo = (label: string, conteudo: string | null) => {
-            const text = `${label}: ${conteudo || '-'}`;
-            const lines = doc.splitTextToSize(text, maxWidth);
-            if (y + lines.length * lineHeight > pageHeight - 20) {
-              doc.addPage();
-              y = 10;
-            }
-            doc.text(lines, margin, y);
-            y += lines.length * lineHeight;
-          };
-
-
-          if (camposSelecionados.anamnese) adicionarCampo('Anamnese', this.anamnese);
-          if (camposSelecionados.exameFisico) adicionarCampo('Exame Físico', this.exameFisico);
-          if (camposSelecionados.solicitacaoExames) adicionarCampo('Solicitação de Exames', this.solicitacaoExames);
-          if (camposSelecionados.orientacao) adicionarCampo('Orientação', this.orientacao);
-          if (camposSelecionados.prescricao) adicionarCampo('Prescrição', this.prescricao);
-          if (camposSelecionados.conduta) adicionarCampo('Conduta', this.conduta);
-          if (camposSelecionados.cid10) adicionarCampo('CID-10', this.cid10);
-
-
-          doc.setFontSize(10);
-          const footerY1 = pageHeight - 15;
-          const footerY2 = pageHeight - 8;
-          doc.text('Clínica Médica UNICENTRO', margin, footerY1);
-          doc.text(
-            'Endereço: Alameda Élio Antonio Dalla Vecchia, 838 - CEP 85040-167 - Bairro - Vila Carli, Guarapuava - PR',
-            margin,
-            footerY2
-          );
-
-          doc.save(`atendimento_${this.nome}.pdf`);
-        };
-      }
+      if (!camposSelecionados) return;
+      this.gerarPDF(camposSelecionados);
     });
+  }
+
+  private gerarPDF(camposSelecionados: any) {
+    const dados = this.atendimentoForm.getRawValue(); // pega o conteúdo atual do formulário
+
+    const img = new Image();
+    img.src = 'assets/logo.png';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const imgData = canvas.toDataURL('image/png');
+
+      const doc = new jsPDF();
+      const margin = 20;
+      const lineHeight = 8;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 20;
+
+      const imgWidth = 50;
+      const imgX = (pageWidth - imgWidth) / 2;
+      doc.addImage(imgData, 'PNG', imgX, y - 10, imgWidth, 20);
+      y += 25;
+
+      doc.setFontSize(14);
+      doc.text(`Atendimento - ${this.nome} (${this.idade} anos)`, margin, y);
+      y += 15;
+
+      const addText = (titulo: string, conteudo: string | undefined) => {
+        const texto = `${titulo}: ${conteudo?.trim() || '-'}`;
+        const lines = doc.splitTextToSize(texto, pageWidth - 2 * margin);
+        if (y + lines.length * lineHeight > pageHeight - 20) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(lines, margin, y);
+        y += lines.length * lineHeight + 5;
+      };
+
+      if (camposSelecionados.anamnese) addText('Anamnese', dados.anamnese);
+      if (camposSelecionados.exameFisico) addText('Exame Físico', dados.exameFisico);
+      if (camposSelecionados.solicitacaoExames) addText('Solicitação de Exames', dados.solicitacaoExames);
+      if (camposSelecionados.orientacao) addText('Orientação', dados.orientacao);
+      if (camposSelecionados.prescricao) addText('Prescrição', dados.prescricao);
+      if (camposSelecionados.conduta) addText('Conduta', dados.conduta);
+      if (camposSelecionados.cid10) addText('CID-10', dados.cid10);
+
+      // Rodapé
+      doc.setFontSize(10);
+      const footerY1 = pageHeight - 15;
+      const footerY2 = pageHeight - 8;
+      doc.text('Clínica Médica UNICENTRO', margin, footerY1);
+      doc.text(
+        'Endereço: Alameda Élio Antonio Dalla Vecchia, 838 - CEP 85040-167 - Vila Carli, Guarapuava - PR',
+        margin,
+        footerY2
+      );
+
+      doc.save(`atendimento_${this.nome}.pdf`);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF gerado com sucesso!',
+        text: `O arquivo "atendimento_${this.nome}.pdf" foi baixado.`,
+        confirmButtonColor: '#0d47a1'
+      });
+    };
   }
 }

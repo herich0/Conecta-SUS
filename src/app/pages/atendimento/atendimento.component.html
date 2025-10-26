@@ -64,11 +64,18 @@
     </mat-form-field>
 
     <div class="actions-container">
-      <button mat-raised-button class="cancel-btn" (click)="cancelar()">Cancelar</button>
-      <button mat-raised-button class="primary-btn" (click)="abrirModalExportarPDF()">Exportar PDF</button>
-      <button mat-raised-button class="primary-btn" (click)="salvarAtendimento()">Salvar</button>
-    </div>
+      <button mat-raised-button class="cancel-btn" type="button" (click)="cancelar()">
+        Cancelar
+      </button>
 
+      <button mat-raised-button class="primary-btn" type="button" (click)="abrirModalExportarPDF()">
+        Exportar PDF
+      </button>
+
+      <button mat-raised-button class="primary-btn" type="submit">
+        Salvar
+      </button>
+    </div>
 
   </form>
 </div>
