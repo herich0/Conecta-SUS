@@ -38,8 +38,10 @@ export class UsuariosComponent implements OnInit {
   }
 
   editarUsuario(usuario: Usuario) {
-    this.router.navigate(['/cadastro'], { state: { usuario } });
-  }
+  sessionStorage.setItem('usuarioEdicao', JSON.stringify(usuario));
+  this.router.navigate(['/cadastro']);
+}
+
   
   excluirUsuario(usuario: Usuario): void {
     Swal.fire({

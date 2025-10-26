@@ -1,4 +1,3 @@
-// src/app/services/usuario.service.ts
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { map, Observable } from 'rxjs';
@@ -16,12 +15,22 @@ export interface Usuario {
   providedIn: 'root'
 })
 export class UsuarioService {
-  constructor(private firestore: AngularFirestore) { }
+  constructor(private firestore: AngularFirestore) {}
 
+  // 🔹 LISTAR TODOS OS USUÁRIOS
   obterUsuarios(): Observable<Usuario[]> {
-    return this.firestore.collection<Usuario>('users').valueChanges();
+    return this.firestore.collection<Usuario>('users')
+      .snapshotChanges()
+      .pipe(
+        map(actions => actions.map(a => {
+          const data = a.payload.doc.data() as Usuario;
+          const uid = a.payload.doc.id;
+          return { ...data, uid };
+        }))
+      );
   }
 
+  // 🔹 EXCLUIR USUÁRIO
   async excluirUsuario(uid: string): Promise<void> {
     try {
       await this.firestore.collection('users').doc(uid).delete();
@@ -32,7 +41,7 @@ export class UsuarioService {
     }
   }
 
-
+  // 🔹 OBTER USUÁRIOS POR TIPO
   obterUsuariosPorTipo(tipo: string): Observable<Usuario[]> {
     return this.firestore.collection<Usuario>('users', ref => ref.where('tipo', '==', tipo))
       .snapshotChanges().pipe(
@@ -44,6 +53,7 @@ export class UsuarioService {
       );
   }
 
+  // 🔹 OBTER APENAS PROFESSORES
   obterProfessores(): Observable<Usuario[]> {
     return this.firestore.collection<Usuario>('users', ref => ref.where('tipo', '==', 'Professor'))
       .snapshotChanges().pipe(
@@ -55,4 +65,26 @@ export class UsuarioService {
       );
   }
 
+  // 🔹 CRIAR NOVO USUÁRIO
+  async criarUsuario(usuario: Usuario): Promise<void> {
+    try {
+      const ref = this.firestore.collection('users').doc();
+      await ref.set(usuario);
+      console.log('Usuário criado com sucesso:', usuario);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+      throw error;
+    }
+  }
+
+  // 🔹 ATUALIZAR USUÁRIO EXISTENTE
+  async atualizarUsuario(uid: string, dados: Partial<Usuario>): Promise<void> {
+    try {
+      await this.firestore.collection('users').doc(uid).update(dados);
+      console.log(`Usuário ${uid} atualizado com sucesso.`);
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error);
+      throw error;
+    }
+  }
 }

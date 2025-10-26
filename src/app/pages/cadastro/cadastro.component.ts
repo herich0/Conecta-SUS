@@ -15,7 +15,8 @@ export class CadastroComponent implements OnInit {
   formInvalido: boolean = false;
   isEditMode = false;
   userId: string | null = null;
-  pageTitle = 'Cadastro de Usuário'; // Título dinâmico da página
+  pageTitle = 'Cadastro de Usuário';
+  usuarioEdicao: any = null; // novo campo para armazenar o usuário vindo do router.state
 
   constructor(
     private fb: FormBuilder,
@@ -23,13 +24,39 @@ export class CadastroComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute
   ) {
-
-    this.cadastroForm = this.fb.group({}); 
+    this.cadastroForm = this.fb.group({});
   }
 
   ngOnInit(): void {
+    // 🔹 tenta ler do router.state
+    const navigation = this.router.getCurrentNavigation();
+    const stateUsuario = navigation?.extras?.state?.['usuario'];
+
+    // 🔹 ou tenta recuperar do sessionStorage
+    const storedUsuario = sessionStorage.getItem('usuarioEdicao');
+    this.usuarioEdicao = stateUsuario || (storedUsuario ? JSON.parse(storedUsuario) : null);
+
+    console.log('Usuário recebido para edição:', this.usuarioEdicao);
+
     this.buildForm();
     this.checkRouteForContext();
+
+    // 🔹 se veio usuário, preenche o formulário
+    if (this.usuarioEdicao) {
+      this.isEditMode = true;
+      this.userId = this.usuarioEdicao.uid;
+
+      this.cadastroForm.patchValue({
+        nome: this.usuarioEdicao.nome,
+        email: this.usuarioEdicao.email,
+        tipo: this.usuarioEdicao.tipo,
+        departamento: this.usuarioEdicao.departamento
+      });
+
+      this.cadastroForm.get('email')?.disable();
+      this.cadastroForm.get('password')?.disable();
+      this.cadastroForm.get('confirmPassword')?.disable();
+    }
   }
 
   private buildForm(): void {
@@ -47,51 +74,66 @@ export class CadastroComponent implements OnInit {
   }
 
   private checkRouteForContext(): void {
-    this.userId = this.route.snapshot.paramMap.get('id');
-    this.isEditMode = !!this.userId;
+    const navigation = this.router.getCurrentNavigation();
+    this.usuarioEdicao = navigation?.extras?.state?.['usuario'] || null;
+
+    if (this.usuarioEdicao) {
+      sessionStorage.setItem('usuarioEdicao', JSON.stringify(this.usuarioEdicao));
+    } else {
+      const stored = sessionStorage.getItem('usuarioEdicao');
+      if (stored) {
+        this.usuarioEdicao = JSON.parse(stored);
+      }
+    }
+
+    this.userId = this.usuarioEdicao?.uid || this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!this.usuarioEdicao;
 
     const contexto = this.route.snapshot.queryParamMap.get('contexto');
 
     if (contexto === 'estagiario') {
-      // Se for o contexto de estagiário, adapta a página
       this.pageTitle = this.isEditMode ? 'Dados do Estagiário' : 'Cadastrar Estagiário';
       this.cadastroForm.get('tipo')?.setValue('Estagiário');
       this.cadastroForm.get('tipo')?.disable();
     }
 
-    if (this.isEditMode && this.userId) {
-      this.authService.getUsuarioLogado().then(usuario => { 
-          if (usuario) { 
-              this.cadastroForm.patchValue(usuario);
-              this.cadastroForm.get('email')?.disable(); 
-              this.cadastroForm.get('password')?.disable(); 
-              this.cadastroForm.get('confirmPassword')?.disable();
-          }
+    if (this.usuarioEdicao) {
+      this.pageTitle = 'Editar Usuário';
+      this.cadastroForm.patchValue({
+        nome: this.usuarioEdicao.nome,
+        email: this.usuarioEdicao.email,
+        tipo: this.usuarioEdicao.tipo,
+        departamento: this.usuarioEdicao.departamento
       });
+
+      this.cadastroForm.get('email')?.disable();
+      this.cadastroForm.get('password')?.disable();
+      this.cadastroForm.get('confirmPassword')?.disable();
     }
   }
 
+
   verificarSenha() {
     if (this.isEditMode) return;
-  
+
     const password = this.cadastroForm.get('password')?.value;
     const confirmPassword = this.cadastroForm.get('confirmPassword')?.value;
-  
+
     if (!confirmPassword) {
       this.senhaInvalida = true;
       this.cadastroForm.get('confirmPassword')?.setErrors({ required: true });
       return;
     }
-  
+
     this.senhaInvalida = password !== confirmPassword;
-  
+
     if (this.senhaInvalida) {
       this.cadastroForm.get('confirmPassword')?.setErrors({ mismatch: true });
     } else {
       this.cadastroForm.get('confirmPassword')?.setErrors(null);
     }
   }
-  
+
   async onSubmit() {
     this.formInvalido = this.cadastroForm.invalid || this.senhaInvalida;
 
@@ -104,22 +146,21 @@ export class CadastroComponent implements OnInit {
 
     try {
       if (this.isEditMode && this.userId) {
-        await this.authService.atualizarUsuario(this.userId, nome, this.cadastroForm.get('tipo')?.value, departamento);
-         Swal.fire({
-              icon: 'success',
-              title: 'Sucesso!',
-              text: 'Usuário atualizado com sucesso!',
-              confirmButtonColor: '#0d47a1'
-          });
+        await this.authService.atualizarUsuario(this.userId, nome, tipo, departamento);
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: 'Usuário atualizado com sucesso!',
+          confirmButtonColor: '#0d47a1'
+        });
       } else {
-        await this.authService.registerInterno(email, password, departamento, nome, this.cadastroForm.get('tipo')?.value);
+        await this.authService.registerInterno(email, password, departamento, nome, tipo);
       }
 
-    
       if (this.route.snapshot.queryParamMap.get('contexto') === 'estagiario') {
-          this.router.navigate(['/estagiarios']);
+        this.router.navigate(['/estagiarios']);
       } else {
-          this.router.navigate(['/usuarios']);
+        this.router.navigate(['/usuarios']);
       }
     } catch (error) {
       console.error('Erro ao salvar usuário:', error);
@@ -139,9 +180,9 @@ export class CadastroComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         if (this.route.snapshot.queryParamMap.get('contexto') === 'estagiario') {
-            this.router.navigate(['/estagiarios']);
+          this.router.navigate(['/estagiarios']);
         } else {
-            this.router.navigate(['/usuarios']);
+          this.router.navigate(['/usuarios']);
         }
       }
     });
