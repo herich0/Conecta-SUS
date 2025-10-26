@@ -182,7 +182,6 @@ export class AtendimentoComponent implements OnInit {
       if (camposSelecionados.conduta) addText('Conduta', dados.conduta);
       if (camposSelecionados.cid10) addText('CID-10', dados.cid10);
 
-      // Rodapé
       doc.setFontSize(10);
       const footerY1 = pageHeight - 15;
       const footerY2 = pageHeight - 8;
