@@ -48,3 +48,22 @@
   gap: 10px;
   margin-top: 24px;
 }
+
+.custom-btn, .cancel-btn {
+  width: 120px;
+  height: 40px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background-color: #0d47a1 !important;
+  color: #fff !important;
+}
+
+.cancel-btn {
+  background-color: #a10d0d !important;
+  color: #fff !important;
+}
