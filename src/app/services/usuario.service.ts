@@ -17,7 +17,6 @@ export interface Usuario {
 export class UsuarioService {
   constructor(private firestore: AngularFirestore) {}
 
-  // 🔹 LISTAR TODOS OS USUÁRIOS
   obterUsuarios(): Observable<Usuario[]> {
     return this.firestore.collection<Usuario>('users')
       .snapshotChanges()
@@ -30,7 +29,6 @@ export class UsuarioService {
       );
   }
 
-  // 🔹 EXCLUIR USUÁRIO
   async excluirUsuario(uid: string): Promise<void> {
     try {
       await this.firestore.collection('users').doc(uid).delete();
@@ -41,7 +39,6 @@ export class UsuarioService {
     }
   }
 
-  // 🔹 OBTER USUÁRIOS POR TIPO
   obterUsuariosPorTipo(tipo: string): Observable<Usuario[]> {
     return this.firestore.collection<Usuario>('users', ref => ref.where('tipo', '==', tipo))
       .snapshotChanges().pipe(
@@ -53,7 +50,6 @@ export class UsuarioService {
       );
   }
 
-  // 🔹 OBTER APENAS PROFESSORES
   obterProfessores(): Observable<Usuario[]> {
     return this.firestore.collection<Usuario>('users', ref => ref.where('tipo', '==', 'Professor'))
       .snapshotChanges().pipe(
@@ -65,7 +61,6 @@ export class UsuarioService {
       );
   }
 
-  // 🔹 CRIAR NOVO USUÁRIO
   async criarUsuario(usuario: Usuario): Promise<void> {
     try {
       const ref = this.firestore.collection('users').doc();
@@ -77,7 +72,6 @@ export class UsuarioService {
     }
   }
 
-  // 🔹 ATUALIZAR USUÁRIO EXISTENTE
   async atualizarUsuario(uid: string, dados: Partial<Usuario>): Promise<void> {
     try {
       await this.firestore.collection('users').doc(uid).update(dados);

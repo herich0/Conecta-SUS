@@ -16,7 +16,7 @@ export class CadastroComponent implements OnInit {
   isEditMode = false;
   userId: string | null = null;
   pageTitle = 'Cadastro de Usuário';
-  usuarioEdicao: any = null; // novo campo para armazenar o usuário vindo do router.state
+  usuarioEdicao: any = null;
 
   constructor(
     private fb: FormBuilder,
@@ -28,11 +28,9 @@ export class CadastroComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // 🔹 tenta ler do router.state
     const navigation = this.router.getCurrentNavigation();
     const stateUsuario = navigation?.extras?.state?.['usuario'];
 
-    // 🔹 ou tenta recuperar do sessionStorage
     const storedUsuario = sessionStorage.getItem('usuarioEdicao');
     this.usuarioEdicao = stateUsuario || (storedUsuario ? JSON.parse(storedUsuario) : null);
 
@@ -41,7 +39,6 @@ export class CadastroComponent implements OnInit {
     this.buildForm();
     this.checkRouteForContext();
 
-    // 🔹 se veio usuário, preenche o formulário
     if (this.usuarioEdicao) {
       this.isEditMode = true;
       this.userId = this.usuarioEdicao.uid;
