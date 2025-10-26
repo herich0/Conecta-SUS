@@ -11,20 +11,26 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class HistoricoAtendimentosComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   atendimentos: Agendamento[] = [];
   tituloPagina = 'Histórico de Atendimentos';
 
   constructor(
     private agendamentoService: AgendamentoService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.authService.usuarioLogado$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(usuario => {
       if (!usuario) return;
+
+      if (usuario.tipo === 'Secretaria') {
+        window.alert('Acesso negado para Secretaria!');
+        window.history.back();
+        return;
+      }
 
       if (usuario.tipo === 'Estagiário') {
         this.tituloPagina = 'Meus Atendimentos Avaliados';

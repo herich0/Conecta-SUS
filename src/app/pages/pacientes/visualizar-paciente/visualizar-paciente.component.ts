@@ -21,18 +21,22 @@ export class VisualizarPacienteComponent implements OnInit {
     private pacienteService: PacienteService,
     private agendamentoService: AgendamentoService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.authService.getTipoUsuario().then(tipo => {
       this.tipoUsuario = tipo;
-      
+
       this.route.queryParams.subscribe(params => {
         const id = params['id'];
         if (id) {
           this.pacienteService.obterPacientePorId(id).subscribe(p => this.paciente = p);
-          this.carregarAtendimentos(id);
+
+          if (this.tipoUsuario !== 'Secretaria') {
+            this.carregarAtendimentos(id);
+          }
         }
+
       });
     });
   }

@@ -25,38 +25,42 @@
     <p><strong>Complemento:</strong> {{ paciente.complemento }}</p>
   </div>
 
-  <h2 style="margin-top: 32px;">Histórico de Atendimentos</h2>
-  
-  <div *ngIf="atendimentos.length === 0" class="sem-atendimentos">
-    <p>Este paciente ainda não possui atendimentos no histórico.</p>
-  </div>
+  <ng-container *ngIf="tipoUsuario && tipoUsuario !== 'Secretaria'">
 
-  <ng-container *ngFor="let atendimento of atendimentos">
-    <div *ngIf="atendimento.id" class="atendimento-card" [ngClass]="atendimento.status">
-      <button mat-icon-button (click)="toggleAtendimento(atendimento.id)" aria-label="Toggle atendimento">
-        <mat-icon>{{ atendimentosExpandido[atendimento.id] ? 'expand_less' : 'expand_more' }}</mat-icon>
-      </button>
-      <span class="toggle-label">
-        {{ atendimento.data | date: 'dd/MM/yyyy' }} - Atendimento com {{ atendimento.estagiarioNome }}
-        <mat-chip *ngIf="atendimento.status !== 'pendente' && atendimento.status !== 'finalizado'" [ngClass]="atendimento.status">{{ atendimento.status | titlecase }}</mat-chip>
-      </span>
+    <h2 style="margin-top: 32px;">Histórico de Atendimentos</h2>
+    
+    <div *ngIf="atendimentos.length === 0" class="sem-atendimentos">
+      <p>Este paciente ainda não possui atendimentos no histórico.</p>
+    </div>
 
-      <div *ngIf="atendimentosExpandido[atendimento.id]" class="detalhes-atendimento">
-        <p><strong>Anamnese:</strong> {{ atendimento.anamnese || 'Não informado' }}</p>
-        <p><strong>Exame Físico:</strong> {{ atendimento.exameFisico || 'Não informado' }}</p>
-        <p><strong>Solicitação de Exames:</strong> {{ atendimento.solicitacaoExames || 'Não informado' }}</p>
-        <p><strong>Orientação:</strong> {{ atendimento.orientacao || 'Não informado' }}</p>
-        <p><strong>Prescrição:</strong> {{ atendimento.prescricao || 'Não informado' }}</p>
-        <p><strong>Conduta:</strong> {{ atendimento.conduta || 'Não informado' }}</p>
-        <p><strong>CID-10:</strong> {{ atendimento.cid10 || 'Não informado' }}</p>
+    <ng-container *ngFor="let atendimento of atendimentos">
+      <div *ngIf="atendimento.id" class="atendimento-card" [ngClass]="atendimento.status">
+        <button mat-icon-button (click)="toggleAtendimento(atendimento.id)" aria-label="Toggle atendimento">
+          <mat-icon>{{ atendimentosExpandido[atendimento.id] ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+        <span class="toggle-label">
+          {{ atendimento.data | date: 'dd/MM/yyyy' }} - Atendimento com {{ atendimento.estagiarioNome }}
+          <mat-chip *ngIf="atendimento.status !== 'pendente' && atendimento.status !== 'finalizado'" [ngClass]="atendimento.status">{{ atendimento.status | titlecase }}</mat-chip>
+        </span>
 
-        <div *ngIf="atendimento.observacaoProfessor" class="observacao-section">
-          <mat-divider></mat-divider>
-          <h4>Observação do Professor</h4>
-          <p>{{ atendimento.observacaoProfessor }}</p>
+        <div *ngIf="atendimentosExpandido[atendimento.id]" class="detalhes-atendimento">
+          <p><strong>Anamnese:</strong> {{ atendimento.anamnese || 'Não informado' }}</p>
+          <p><strong>Exame Físico:</strong> {{ atendimento.exameFisico || 'Não informado' }}</p>
+          <p><strong>Solicitação de Exames:</strong> {{ atendimento.solicitacaoExames || 'Não informado' }}</p>
+          <p><strong>Orientação:</strong> {{ atendimento.orientacao || 'Não informado' }}</p>
+          <p><strong>Prescrição:</strong> {{ atendimento.prescricao || 'Não informado' }}</p>
+          <p><strong>Conduta:</strong> {{ atendimento.conduta || 'Não informado' }}</p>
+          <p><strong>CID-10:</strong> {{ atendimento.cid10 || 'Não informado' }}</p>
+
+          <div *ngIf="atendimento.observacaoProfessor" class="observacao-section">
+            <mat-divider></mat-divider>
+            <h4>Observação do Professor</h4>
+            <p>{{ atendimento.observacaoProfessor }}</p>
+          </div>
         </div>
       </div>
-    </div>
+    </ng-container>
+
   </ng-container>
 
 </div>

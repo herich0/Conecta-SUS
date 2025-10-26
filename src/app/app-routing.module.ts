@@ -22,7 +22,7 @@ const routes: Routes = [
   { path: 'estagiarios', component: EstagiariosComponent },
   { path: 'visualizar-paciente', component: VisualizarPacienteComponent, canActivate: [AuthGuard] },
   { path: 'avaliacao/:id', component: AvaliacaoAtendimentoComponent },
-  { path: 'historico-atendimentos', component: HistoricoAtendimentosComponent },
+  { path: 'historico-atendimentos', component: HistoricoAtendimentosComponent, canActivate: [AuthGuard]},
   { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
 
