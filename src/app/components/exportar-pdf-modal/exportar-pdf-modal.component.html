@@ -1,4 +1,5 @@
 <h2 mat-dialog-title>Exportar Atendimento</h2>
+
 <mat-dialog-content>
   <mat-checkbox [(ngModel)]="campos.anamnese">Anamnese</mat-checkbox>
   <mat-checkbox [(ngModel)]="campos.exameFisico">Exame Físico</mat-checkbox>
@@ -8,7 +9,8 @@
   <mat-checkbox [(ngModel)]="campos.conduta">Conduta</mat-checkbox>
   <mat-checkbox [(ngModel)]="campos.cid10">CID-10</mat-checkbox>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button mat-dialog-close>Cancelar</button>
-  <button mat-button (click)="confirmar()">Exportar</button>
+  <button mat-button color="primary" (click)="confirmar()">Exportar</button>
 </mat-dialog-actions>

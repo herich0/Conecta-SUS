@@ -9,12 +9,13 @@
   </div>
 
   <form [formGroup]="atendimentoForm" (ngSubmit)="salvarAtendimento()" class="atendimento-form">
-    
+
     <div class="form-row">
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Anamnese</mat-label>
         <textarea matInput formControlName="anamnese" rows="5"></textarea>
-        <mat-error *ngIf="atendimentoForm.get('anamnese')?.touched && atendimentoForm.get('anamnese')?.hasError('required')">
+        <mat-error
+          *ngIf="atendimentoForm.get('anamnese')?.touched && atendimentoForm.get('anamnese')?.hasError('required')">
           Este campo é obrigatório.
         </mat-error>
       </mat-form-field>
@@ -22,7 +23,8 @@
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Exame Físico</mat-label>
         <textarea matInput formControlName="exameFisico" rows="5"></textarea>
-        <mat-error *ngIf="atendimentoForm.get('exameFisico')?.touched && atendimentoForm.get('exameFisico')?.hasError('required')">
+        <mat-error
+          *ngIf="atendimentoForm.get('exameFisico')?.touched && atendimentoForm.get('exameFisico')?.hasError('required')">
           Este campo é obrigatório.
         </mat-error>
       </mat-form-field>
@@ -49,7 +51,8 @@
       <mat-form-field appearance="outline" class="form-field">
         <mat-label>Conduta</mat-label>
         <textarea matInput formControlName="conduta" rows="5"></textarea>
-        <mat-error *ngIf="atendimentoForm.get('conduta')?.touched && atendimentoForm.get('conduta')?.hasError('required')">
+        <mat-error
+          *ngIf="atendimentoForm.get('conduta')?.touched && atendimentoForm.get('conduta')?.hasError('required')">
           Este campo é obrigatório.
         </mat-error>
       </mat-form-field>
@@ -61,9 +64,17 @@
     </mat-form-field>
 
     <div class="actions-container">
-      <button mat-stroked-button type="button" (click)="cancelar()">Cancelar</button>
-      <button mat-stroked-button type="button" (click)="abrirModalExportarPDF()">Exportar PDF</button>
-      <button mat-raised-button color="primary" type="submit">Salvar</button>
+      <button mat-raised-button class="cancel-btn" type="button" (click)="cancelar()">
+        Cancelar
+      </button>
+
+      <button mat-raised-button class="primary-btn" type="button" (click)="abrirModalExportarPDF()">
+        Exportar PDF
+      </button>
+
+      <button mat-raised-button class="primary-btn" type="submit">
+        Salvar
+      </button>
     </div>
 
   </form>
