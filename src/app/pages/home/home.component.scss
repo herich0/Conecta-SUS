@@ -13,7 +13,7 @@
   gap: 20px;
 
   @media (max-width: 768px) {
-    flex-direction: column-reverse;
+    flex-direction: column-reverse; // Inverte a ordem no mobile
   }
 }
 
@@ -120,19 +120,8 @@ mat-icon {
   margin-top: 5px;
 }
 .custom-btn:disabled {
-  background-color: #b0bec5 !important;
+  background-color: #b0bec5 !important; 
   color: #eceff1 !important;
   cursor: not-allowed !important;
   opacity: 1 !important;
-}
-
-.mat-chip {
-  &.aceito {
-    background-color: #4CAF50 !important;
-    color: white !important;
-  }
-  &.rejeitado {
-    background-color: #F44336 !important;
-    color: white !important;
-  }
 }
