@@ -34,12 +34,33 @@ export class AuthService {
   }
 
 
-  async login(email: string, password: string) {
+async login(email: string, password: string) {
     try {
-      await this.afAuth.signInWithEmailAndPassword(email, password);
-      this.router.navigate(['/home']);
+      const userCredential = await this.afAuth.signInWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+
+      if (user) {
+        const docRef = this.firestore.collection('users').doc(user.uid);
+        const snapshot = await docRef.ref.get();
+
+        if (!snapshot.exists) {
+          // Se não encontrou o usuário no Firestore
+          await this.afAuth.signOut();
+          Swal.fire({
+            icon: 'error',
+            title: 'Erro ao realizar login',
+            text: 'Usuário removido do sistema. Entre em contato com o administrador.',
+            confirmButtonColor: '#d33'
+          });
+
+          return;
+        }
+
+        this.router.navigate(['/home']);
+      }
+
     } catch (error: any) {
-      // Tratar erro
+      this.handleAuthError(error); 
     }
   }
 
@@ -61,7 +82,6 @@ export class AuthService {
         await this.firestore.collection('users').doc(newUser.uid).set({ uid: newUser.uid, email, departamento, nome, tipo });
       }
     } catch (error) {
-      // Tratar erro
     }
   }
 
@@ -91,11 +111,39 @@ export class AuthService {
     return this.afAuth.authState;
   }
 
+
   podeGerenciarUsuarios(): Observable<boolean> {
     return this.usuarioLogado$.pipe(map(user => user?.tipo === 'Secretaria'));
   }
 
   podeGerenciarEstagiarios(): Observable<boolean> {
     return this.usuarioLogado$.pipe(map(user => user?.tipo === 'Professor' || user?.tipo === 'Secretaria'));
+  }
+
+  private handleAuthError(error: any) {
+    console.error("Erro de autenticação:", error); 
+
+    let errorMsg = "Erro ao processar a solicitação. Tente novamente.";
+
+    if (error.code === 'auth/email-already-in-use') {
+      errorMsg = "Este e-mail já está em uso!";
+    } else if (error.code === 'auth/weak-password') {
+      errorMsg = "A senha precisa ter pelo menos 6 caracteres.";
+    } else if (error.code === 'auth/invalid-email') {
+      errorMsg = "O e-mail fornecido não é válido.";
+    } else if (
+      error.code === 'auth/wrong-password', 
+      error.code === 'auth/user-not-found' ,
+      error.code === 'auth/invalid-credential'
+  ) {
+      errorMsg = "Email ou senha incorretos.";
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Erro de autenticação',
+      text: errorMsg,
+      confirmButtonColor: '#0d47a1'
+    });
   }
 }

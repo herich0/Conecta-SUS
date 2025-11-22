@@ -11,13 +11,14 @@ import Swal from 'sweetalert2';
 })
 export class LoginComponent {
   loginForm: FormGroup;
+  
+  // Estas são as variáveis que o seu HTML está usando
   formInvalido: boolean = false;
   loginFalhou: boolean = false;
-  recuperacaoEmailEnviado: boolean = false;
-  recuperacaoEmailErro: boolean = false;
 
-
+  // Variáveis para o diálogo
   emailRecuperacao: string = '';
+  recuperacaoEmailErro: boolean = false;
   dialogRef!: MatDialogRef<any>;
 
   @ViewChild('dialogRecuperarSenha') dialogTemplate!: TemplateRef<any>;
@@ -33,7 +34,7 @@ export class LoginComponent {
     });
   }
 
-  onSubmit() {
+onSubmit() {
     this.formInvalido = this.loginForm.invalid;
 
     if (this.formInvalido) {
@@ -53,6 +54,7 @@ export class LoginComponent {
 
   abrirDialogRecuperarSenha(): void {
     this.emailRecuperacao = '';
+    this.recuperacaoEmailErro = false;
     this.dialogRef = this.dialog.open(this.dialogTemplate);
   }
 
@@ -63,11 +65,11 @@ export class LoginComponent {
       .then(() => {
         this.dialogRef.close();
          Swal.fire({
-        icon: 'success',
-        title: 'E-mail enviado!',
-        text: 'Verifique sua caixa de entrada para redefinir sua senha.',
-        confirmButtonColor: '#0d47a1'
-      });
+          icon: 'success',
+          title: 'E-mail enviado!',
+          text: 'Verifique sua caixa de entrada para redefinir sua senha.',
+          confirmButtonColor: '#0d47a1'
+        });
       })
       .catch(() => {
         this.recuperacaoEmailErro = true;

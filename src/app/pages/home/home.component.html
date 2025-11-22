@@ -4,6 +4,7 @@
   <h2>Bem-vindo ao Interpront</h2>
 
   <div class="main-layout">
+    <!-- Coluna da Esquerda: Lista de Agendamentos -->
     <div class="left-column">
       <h3>Agendamentos para {{ selected | date: 'dd/MM/yyyy' }}</h3>
       
@@ -11,6 +12,7 @@
           <p>Nenhum agendamento para esta data.</p>
       </div>
 
+      <!-- Lista de agendamentos filtrada para cada perfil -->
       <div *ngFor="let agendamento of agendamentos" class="appointment">
         <p><strong>Horário:</strong> {{ agendamento.hora }}</p>
         <p><strong>Paciente:</strong> {{ agendamento.nome }}</p>
@@ -23,8 +25,10 @@
           <strong>Professor:</strong> {{ agendamento.professorResponsavelNome }}
         </p>
 
+        <!-- Container de Ações (botões) -->
         <div class="appointment-actions">
           
+          <!-- Botão "Iniciar Atendimento" (só para Estagiário) -->
           <ng-container *ngIf="tipoUsuario === 'Estagiário'">
             <button
               mat-raised-button
@@ -36,11 +40,12 @@
             </button>
           </ng-container>
 
+          <!-- Botão "Avaliar" (só para Professor) -->
           <ng-container *ngIf="tipoUsuario === 'Professor'">
             <button
               *ngIf="agendamento.status === 'finalizado'"
               mat-stroked-button
-              color="primary"
+              class="custom-btn"
               (click)="irParaAvaliacao(agendamento)">
               Avaliar
             </button>
@@ -51,6 +56,7 @@
             </mat-chip-listbox>
           </ng-container>
           
+          <!-- Botões de edição e exclusão (só para Secretaria) -->
           <ng-container *ngIf="tipoUsuario === 'Secretaria'">
             <mat-icon class="edit-icon"
               *ngIf="!dataNoPassado"
@@ -67,11 +73,13 @@
       </div>
     </div>
 
+    <!-- Coluna da Direita: Calendário -->
     <div class="right-column">
       <mat-card class="demo-inline-calendar-card">
         <mat-calendar [(selected)]="selected" (selectedChange)="buscarAgendamentos($event)" [dateFilter]="filtroDatas"></mat-calendar>
       </mat-card>
       
+      <!-- Botão de agendar (só para Secretaria) -->
       <button
         mat-raised-button
         class="custom-btn schedule-btn"
